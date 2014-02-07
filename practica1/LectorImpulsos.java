@@ -17,3 +17,4 @@ public class LectorImpulsos implements Runnable {
 	}//end run
 
 }//end_class
+//comment
