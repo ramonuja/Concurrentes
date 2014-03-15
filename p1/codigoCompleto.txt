@@ -1,0 +1,110 @@
+package p1;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+/**
+ * 
+ * @author Ramón Díaz Valenzuela
+ *
+ */
+public class ContadorImpulsos {
+	
+	private static int impulsos = 0;
+	/**
+	 * Añade un nuevo impulso al contador
+	 */
+	public static synchronized void nuevoImpulso(){impulsos++;}
+	/**
+	 * Devuelve el número de impulsos enviados hasta el momento.
+	 * @return Número de impulsos enviados hasta el momento.
+	 */
+	public static synchronized int getImpulsos(){return impulsos;}
+	
+	/**
+	 * Inicio de la aplicación. Aquí se crean el Lector de Impulsos y los Generadores de los mismos. Cada uno de estos objetos es lanzado en un hilo de ejecución diferente.
+	 */
+	public static void main(String[] args) {
+		//Aquí creamos los hilos a lanzar
+		LectorImpulsos li = new LectorImpulsos();
+		GeneradorImpulsos gi1 = new GeneradorImpulsos("GENERADOR 1");
+		GeneradorImpulsos gi2 = new GeneradorImpulsos("GENERADOR 2");
+		GeneradorImpulsos gi3 = new GeneradorImpulsos("GENERADOR 3");
+		GeneradorImpulsos gi4 = new GeneradorImpulsos("GENERADOR 4");
+		//Creación del manejador de hilos
+		ExecutorService threadExecutor = Executors.newCachedThreadPool();
+		//inicialización de hilos, se ponen en estado "Runnable"
+		threadExecutor.execute( li ); // inicio del lector de impulsos
+		threadExecutor.execute( gi1 ); // Inicio del Generador de impulsos 1
+		threadExecutor.execute( gi2 ); // Inicio del Generador de impulsos 2
+		threadExecutor.execute( gi3 ); // Inicio del Generador de impulsos 3
+		threadExecutor.execute( gi4 ); // Inicio del Generador de impulsos 4
+		
+		//Cierre de todos los hilos cuando terminen
+		threadExecutor.shutdown();
+		
+		System.out.println("CONTADOR DE IMPULSOS: Todas las tareas iniciadas, finaliza el hilo principal...");
+	}//end main
+
+}//end_class
+package p1;
+
+import java.util.Random;
+/**
+ * Se encarga de generar los impulsos eléctricos en el sistema.
+ * @author Ramón Díaz Valenzuela
+ *
+ */
+public class GeneradorImpulsos implements Runnable {
+	
+	private String name;
+	/**
+	 * 
+	 * @param name Nombre del generador de Impulsos
+	 */
+	public GeneradorImpulsos(String name) {
+		this.name = name;
+	}
+	
+	private final static Random generadorAl = new Random();
+	
+	@Override
+	public void run() {
+		//iteramos 10 veces para cada uno de los pulsos
+		for (int y = 0; y < 10 ; y++){
+			try {
+				//Antes de enviar un impulso mandamos el hilo a "dormir" entre 0 y 10 segundos
+				Thread.sleep(generadorAl.nextInt(20000));
+				ContadorImpulsos.nuevoImpulso();
+				System.out.println(name + ": Nuevo impulso emitido.");
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		System.out.println(name + ": Fin de emisión de pulsos, termina mi hilo de ejecución.");
+	}//end run
+
+}//end_class
+package p1;
+/**
+ * Lee y muestra los impulsos emitidos hasta el momento.
+ * @author Ramón Díaz Valenzuela
+ *
+ */
+public class LectorImpulsos implements Runnable {
+
+	@Override
+	public void run() {
+		for (int i = 0; i < 5; i++) {
+			try {
+				Thread.sleep(20000);//espera 20 segundos antes de mostrar los impulsos acumulados
+				System.out.println("LECTOR DE IMPULSOS("+ i +"): Se han consumido " + ContadorImpulsos.getImpulsos() + " Kilowatios hasta el momento.");
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		System.out.println("LECTOR DE IMPULSOS: Fin de la lectura de pulsos, se cierra mi hilo de ejecución.");
+	}//end run
+
+}//end_class
+//comment
